@@ -102,7 +102,7 @@ const typeDefs = `
   type Author {
     name : String!
     id: String!
-    born: Int!
+    born: Int
     bookCount: Int
   }
   type Book {
@@ -120,6 +120,7 @@ const typeDefs = `
   }
   type Mutation {
     addBook(title: String!, published: Int!, author: String!, genres: [String]) : Book
+    editAuthor(name: String!, setBornTo: Int!): Author
   }
 `;
 
@@ -152,6 +153,18 @@ const resolvers = {
       const newBook = { ...args, id: uuid() };
       books = books.concat(newBook);
       return newBook;
+    },
+    editAuthor: (root, args) => {
+      const { name, setBornTo } = args;
+      let index;
+      authors = authors.map((author, i) => {
+        if (author.name === name) {
+          index = i;
+          return { ...author, born: setBornTo };
+        }
+        return author;
+      });
+      return authors[index];
     },
   },
 };
