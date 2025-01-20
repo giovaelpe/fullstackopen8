@@ -31,7 +31,7 @@ const Authors = (props) => {
           ))}
         </tbody>
       </table>
-      <EditAuthorForm />
+      <EditAuthorForm authors={authors} />
     </div>
   );
 };
