@@ -1,6 +1,7 @@
 import { useQuery } from "@apollo/client";
 import { ALL_AUTHORS } from "../services/queries";
 import { Spinner } from "react-bootstrap";
+import EditAuthorForm from "./EditAuthorForm";
 
 const Authors = (props) => {
   const result = useQuery(ALL_AUTHORS);
@@ -30,6 +31,7 @@ const Authors = (props) => {
           ))}
         </tbody>
       </table>
+      <EditAuthorForm />
     </div>
   );
 };
