@@ -2,6 +2,7 @@ const { ApolloServer } = require("@apollo/server");
 const { startStandaloneServer } = require("@apollo/server/standalone");
 const { v1: uuid } = require("uuid");
 
+// Borrar
 let authors = [
   {
     name: "Robert Martin",
@@ -27,20 +28,6 @@ let authors = [
     id: "afa5b6f3-344d-11e9-a414-719c6709cf3e",
   },
 ];
-
-/*
- * Suomi:
- * Saattaisi olla järkevämpää assosioida kirja ja sen tekijä tallettamalla kirjan yhteyteen tekijän nimen sijaan tekijän id
- * Yksinkertaisuuden vuoksi tallennamme kuitenkin kirjan yhteyteen tekijän nimen
- *
- * English:
- * It might make more sense to associate a book with its author by storing the author's id in the context of the book instead of the author's name
- * However, for simplicity, we will store the author's name in connection with the book
- *
- * Spanish:
- * Podría tener más sentido asociar un libro con su autor almacenando la id del autor en el contexto del libro en lugar del nombre del autor
- * Sin embargo, por simplicidad, almacenaremos el nombre del autor en conexión con el libro
- */
 
 let books = [
   {
@@ -93,10 +80,19 @@ let books = [
     genres: ["classic", "revolution"],
   },
 ];
+//Borrar
 
-/*
-  you can remove the placeholder query once your first one has been implemented 
-*/
+const Authors = require("./models/Authors");
+const Books = require("./models/Books");
+const mongoose = require("mongoose");
+require("dotenv").config();
+
+console.log("Conecting...");
+
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("Contected to mongo"))
+  .catch((error) => console.log(`Failed connection: ${error}`));
 
 const typeDefs = `
   type Author {
@@ -108,7 +104,7 @@ const typeDefs = `
   type Book {
     title: String!
     published: Int!
-    author: String!
+    author: Author!
     id: String!
     genres: [String]
   }
@@ -126,24 +122,10 @@ const typeDefs = `
 
 const resolvers = {
   Query: {
-    bookCount: () => books.length,
-    authorCount: () => authors.length,
-    allBooks: (root, args) => {
-      let result = books.map((b) => b);
-      if (args.author) {
-        result = result.filter((b) => b.author === args.author);
-      }
-      if (args.genre) {
-        result = result.filter((b) => b.genres.includes(args.genre));
-      }
-      return result;
-    },
-    allAuthors: () =>
-      authors.map((author) => {
-        return {
-          ...author,
-        };
-      }),
+    bookCount: async () => Books.collection.countDocuments(),
+    authorCount: async () => Authors.collection.countDocuments(),
+    allBooks: async () => Books.find({}),
+    allAuthors: async () => Authors.find({}),
   },
   Author: {
     bookCount: (root) => books.filter((b) => b.author === root.name).length,
