@@ -85,6 +85,7 @@ let books = [
 const Authors = require("./models/Authors");
 const Books = require("./models/Books");
 const mongoose = require("mongoose");
+const { GraphQLBoolean, GraphQLError } = require("graphql");
 require("dotenv").config();
 
 console.log("Conecting...");
@@ -97,15 +98,18 @@ mongoose
 const typeDefs = `
   type Author {
     name : String!
-    id: String!
+    id: ID!
     born: Int
     bookCount: Int
+  }
+  input AuthorInput {
+    name: String!
   }
   type Book {
     title: String!
     published: Int!
     author: Author!
-    id: String!
+    id: ID!
     genres: [String]
   }
   type Query {
@@ -115,8 +119,9 @@ const typeDefs = `
     allAuthors: [Author]
   }
   type Mutation {
-    addBook(title: String!, published: Int!, author: String!, genres: [String]) : Book
+    addBook(title: String!, published: Int!, author: AuthorInput!, genres: [String]) : Book
     editAuthor(name: String!, setBornTo: Int!): Author
+    addAuthor(name: String!, born: Int): Author
   }
 `;
 
@@ -124,29 +129,42 @@ const resolvers = {
   Query: {
     bookCount: async () => Books.collection.countDocuments(),
     authorCount: async () => Authors.collection.countDocuments(),
-    allBooks: async () => Books.find({}),
+    allBooks: async () => Books.find({}).populate("author"), //Esta sin parametro autor
     allAuthors: async () => Authors.find({}),
   },
   Author: {
-    bookCount: (root) => books.filter((b) => b.author === root.name).length,
+    bookCount: async (root) => Books.countDocuments({ author: root._id }),
   },
   Mutation: {
-    addBook: (root, args) => {
-      const newBook = { ...args, id: uuid() };
-      books = books.concat(newBook);
+    addBook: async (root, args) => {
+      const author = await Authors.findOne({ name: args.author.name });
+      if (!author) {
+        throw new GraphQLError("Author doesnt exists", {
+          extensions: {
+            code: "BAD_USER_INPUT",
+          },
+        });
+      }
+      const newBook = new Books({
+        title: args.title,
+        published: args.published,
+        author: author._id,
+        genres: args.genres,
+      });
+      await newBook.save();
       return newBook;
     },
-    editAuthor: (root, args) => {
+    addAuthor: async (root, args) => {
+      const newAuthor = new Authors({ ...args });
+      await newAuthor.save();
+      return newAuthor;
+    },
+    editAuthor: async (root, args) => {
       const { name, setBornTo } = args;
-      let index;
-      authors = authors.map((author, i) => {
-        if (author.name === name) {
-          index = i;
-          return { ...author, born: setBornTo };
-        }
-        return author;
-      });
-      return authors[index];
+      const authorToUpdate = await Authors.findOne({ name: name });
+      authorToUpdate.born = setBornTo;
+      await authorToUpdate.save();
+      return authorToUpdate;
     },
   },
 };
