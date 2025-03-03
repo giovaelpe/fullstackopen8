@@ -88,7 +88,7 @@ const resolvers = {
     bookCount: async (root) => Books.countDocuments({ author: root._id }),
   },
   Mutation: {
-    addBook: async (root, args) => {
+    addBook: async (root, args, context) => {
       const author = await Authors.findOne({ name: args.author.name });
       if (!author) {
         throw new GraphQLError("Author doesnt exists", {
@@ -97,6 +97,7 @@ const resolvers = {
           },
         });
       }
+      console.log(context.currentUser);
       const newBook = new Books({
         title: args.title,
         published: args.published,
@@ -111,7 +112,7 @@ const resolvers = {
         });
       }
       await newBook.save();
-      return newBook;
+      return newBook.populate("author");
     },
     addAuthor: async (root, args) => {
       const exists = Authors.findOne({ name: args.name });
