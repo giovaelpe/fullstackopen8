@@ -97,7 +97,13 @@ const resolvers = {
           },
         });
       }
-      console.log(context.currentUser);
+      if (!context.currentUser) {
+        throw new GraphQLError("No está logeado", {
+          extensions: {
+            code: "UNAUTHENTICATED",
+          },
+        });
+      }
       const newBook = new Books({
         title: args.title,
         published: args.published,
@@ -134,13 +140,20 @@ const resolvers = {
       await newAuthor.save();
       return newAuthor;
     },
-    editAuthor: async (root, args) => {
+    editAuthor: async (root, args, context) => {
       const { name, setBornTo } = args;
       const authorToUpdate = await Authors.findOne({ name: name });
       if (!authorToUpdate) {
         throw new GraphQLError("Author doesn't exists", {
           extensions: {
             code: "BAD_USER_INPUT",
+          },
+        });
+      }
+      if (!context.currentUser) {
+        throw new GraphQLError("No está logeado", {
+          extensions: {
+            code: "UNAUTHENTICATED",
           },
         });
       }
