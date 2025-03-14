@@ -28,7 +28,7 @@ const App = () => {
       <div>
         <button onClick={() => setPage("authors")}>authors</button>
         <button onClick={() => setPage("books")}>books</button>
-        <button onClick={() => setPage("add")}>add book</button>
+        {token && <button onClick={() => setPage("add")}>add book</button>}
         {!token ? (
           <button onClick={() => setPage("login")}>Login</button>
         ) : (
@@ -36,7 +36,7 @@ const App = () => {
         )}
       </div>
 
-      <Authors show={page === "authors"} />
+      <Authors token={token} show={page === "authors"} />
 
       <Books show={page === "books"} />
 

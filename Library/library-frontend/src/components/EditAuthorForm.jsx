@@ -14,7 +14,6 @@ export default function EditAuthorForm({ authors }) {
     editBorn({
       variables: { name, date: parseInt(born) },
     });
-    setName("");
     setBorn("");
   };
   return (

@@ -1,14 +1,21 @@
 import { useMutation } from "@apollo/client";
-import { Button, Form } from "react-bootstrap";
+import { Button, Form, Alert } from "react-bootstrap";
 import { LOGIN } from "../services/queries";
 import { useEffect, useState } from "react";
 
 export default function Login(props) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [alert, setAlert] = useState("");
+
+  const showAlert = (message) => {
+    setAlert(message);
+    setTimeout(() => setAlert(""), 5000);
+  };
+
   const [login, result] = useMutation(LOGIN, {
     onError: (error) => {
-      console.log(error.graphQLErrors[0].message);
+      showAlert(error.graphQLErrors[0].message);
     },
   });
 
@@ -24,6 +31,8 @@ export default function Login(props) {
   const submit = async (e) => {
     e.preventDefault();
     login({ variables: { username, password } });
+    setUsername("");
+    setPassword("");
   };
 
   if (!props.show) {
@@ -32,6 +41,7 @@ export default function Login(props) {
 
   return (
     <>
+      {alert && <Alert variant="warning">{alert}</Alert>}
       <Form onSubmit={submit}>
         <Form.Group>
           <Form.Label>Usuario</Form.Label>

@@ -1,9 +1,11 @@
 import { useQuery } from "@apollo/client";
 import { ALL_BOOKS } from "../services/queries";
 import { Spinner } from "react-bootstrap";
+import { useState } from "react";
 
 const Books = (props) => {
   const result = useQuery(ALL_BOOKS);
+  const [filter, setFilter] = useState("");
   if (!props.show) {
     return null;
   }
