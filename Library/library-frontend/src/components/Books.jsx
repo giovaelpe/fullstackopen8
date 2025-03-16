@@ -1,12 +1,16 @@
-import { useQuery } from "@apollo/client";
+import { useQuery, useLazyQuery } from "@apollo/client";
 import { ALL_BOOKS, ALL_GENRES } from "../services/queries";
 import { Spinner } from "react-bootstrap";
-import { useState } from "react";
+import { useEffect } from "react";
 
 const Books = (props) => {
-  const result = useQuery(ALL_BOOKS);
+  const [getBooks, result] = useLazyQuery(ALL_BOOKS);
   const genres = useQuery(ALL_GENRES);
-  const [filter, setFilter] = useState(null);
+
+  useEffect(() => {
+    getBooks();
+  }, []);
+
   if (!props.show) {
     return null;
   }
@@ -20,6 +24,14 @@ const Books = (props) => {
     genres.data.allBooks.map((book) => book.genres).flat()
   );
 
+  const filterBooks = (genre) => {
+    if (genre) {
+      getBooks({ variables: { genre }, fetchPolicy: "network-only" });
+    } else {
+      getBooks({ fetchPolicy: "network-only" });
+    }
+  };
+
   return (
     <div>
       <h2>books</h2>
@@ -32,24 +44,22 @@ const Books = (props) => {
             <th>published</th>
             <th>genres</th>
           </tr>
-          {books
-            .filter((book) => (!filter ? true : book.genres.includes(filter)))
-            .map((a) => (
-              <tr key={a.title}>
-                <td>{a.title}</td>
-                <td>{a.author.name}</td>
-                <td>{a.published}</td>
-                <td>{a.genres}</td>
-              </tr>
-            ))}
+          {books.map((a) => (
+            <tr key={a.title}>
+              <td>{a.title}</td>
+              <td>{a.author.name}</td>
+              <td>{a.published}</td>
+              <td>{a.genres}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
       {[...genresArranged].map((genre) => (
-        <button key={genre} onClick={() => setFilter(genre)}>
+        <button key={genre} onClick={() => filterBooks(genre)}>
           {genre}
         </button>
       ))}
-      <button onClick={() => setFilter(null)}>All genres</button>
+      <button onClick={() => filterBooks()}>All genres</button>
     </div>
   );
 };
