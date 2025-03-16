@@ -5,6 +5,7 @@ import { Spinner } from "react-bootstrap";
 export default function Recomended(props) {
   const user = useQuery(USER_INFO);
   const books = useQuery(ALL_BOOKS);
+
   if (!props.show) {
     return null;
   }

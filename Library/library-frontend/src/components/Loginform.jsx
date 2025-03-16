@@ -1,4 +1,4 @@
-import { useMutation } from "@apollo/client";
+import { useApolloClient, useMutation } from "@apollo/client";
 import { Button, Form, Alert } from "react-bootstrap";
 import { LOGIN, USER_INFO } from "../services/queries";
 import { useEffect, useState } from "react";
@@ -7,6 +7,7 @@ export default function Login(props) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [alert, setAlert] = useState("");
+  const client = useApolloClient();
 
   const showAlert = (message) => {
     setAlert(message);
@@ -14,7 +15,6 @@ export default function Login(props) {
   };
 
   const [login, result] = useMutation(LOGIN, {
-    refetchQueries: [{ query: USER_INFO }],
     onError: (error) => {
       showAlert(error.graphQLErrors[0].message);
     },
@@ -25,6 +25,10 @@ export default function Login(props) {
       const token = result.data.login.value;
       props.setToken(token);
       localStorage.setItem("tokenForLibrary", token);
+      client.query({
+        query: USER_INFO,
+        fetchPolicy: "network-only",
+      });
       props.setPage("authors");
     }
   }, [result.data]);

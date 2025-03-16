@@ -15,6 +15,7 @@ const App = () => {
     localStorage.clear();
     setToken(null);
     client.resetStore();
+    setPage("authors");
   };
 
   useEffect(() => {
