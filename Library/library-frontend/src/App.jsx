@@ -5,7 +5,7 @@ import NewBook from "./components/NewBook";
 import Loginform from "./components/Loginform";
 import { useApolloClient, useSubscription } from "@apollo/client";
 import Recomended from "./components/Recomended";
-import { BOOK_ADDED } from "./services/queries";
+import { ALL_BOOKS, BOOK_ADDED } from "./services/queries";
 
 const App = () => {
   const [page, setPage] = useState("authors");
@@ -14,7 +14,12 @@ const App = () => {
 
   useSubscription(BOOK_ADDED, {
     onData: ({ data }) => {
-      console.log(data);
+      const addedBook = data.data.bookAdded;
+      client.cache.updateQuery({ query: ALL_BOOKS }, ({ allBooks }) => {
+        return {
+          allBooks: allBooks.concat(addedBook),
+        };
+      });
     },
   });
 

@@ -86,6 +86,9 @@ export const BOOK_ADDED = gql`
       title
       published
       genres
+      author {
+        name
+      }
     }
   }
 `;
