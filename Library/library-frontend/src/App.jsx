@@ -31,6 +31,12 @@ const App = () => {
     },
   });
 
+  useSubscription(BOOK_ADDED, {
+    onData: ({ data }) => {
+      console.log(data);
+    },
+  });
+
   const logout = () => {
     localStorage.clear();
     setToken(null);
