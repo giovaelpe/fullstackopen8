@@ -21,9 +21,6 @@ const resolvers = {
     allAuthors: async () => Authors.find({}),
     me: (root, args, context) => context.currentUser,
   },
-  Author: {
-    bookCount: async (root) => Books.countDocuments({ author: root._id }),
-  },
   Book: {
     author: async (root) => {
       const author = await Authors.findById(root.author._id);
@@ -61,19 +58,22 @@ const resolvers = {
         });
       }
       await newBook.save();
+      author.bookCount = author.bookCount + 1;
+      await author.save();
       pubSub.publish("BOOK_ADDED", { bookAdded: newBook });
       return newBook.populate("author");
     },
     addAuthor: async (root, args) => {
-      const exists = Authors.findOne({ name: args.name });
+      const exists = await Authors.findOne({ name: args.name });
       if (exists) {
+        console.log(exists.name);
         throw new GraphQLError("Author already exists", {
           extensions: {
             code: "BAD_USER_INPUT",
           },
         });
       }
-      const newAuthor = new Authors({ ...args });
+      const newAuthor = new Authors({ ...args, bookCount: 0 });
       if (newAuthor.name.length < 4) {
         throw new GraphQLError("Author's name is too short", {
           extensions: {
